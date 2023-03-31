@@ -5,6 +5,7 @@ from apiclient.discovery import build
 from oauth2client import file, client, tools
 from google.auth.transport.requests import Request
 import urllib.request, os, json, requests, filedate
+import shutil
 
 def doAuth():
     # Authentication
@@ -57,7 +58,8 @@ def loadAlbumIndex(service, albumId):
                 url = key['baseUrl']+ "=dv"
             finalData[key['id']] = {'filename': key['filename'], 
                                     'url': url, 
-                                    'date': key['mediaMetadata']['creationTime']}
+                                    'date': key['mediaMetadata']['creationTime'],
+                                   'meta': key['mediaMetadata']}
 
         # Write to index file
         sorted_dict = dict(sorted(finalData.items(), key=lambda x: datetime.fromisoformat(x[1]['date'].removesuffix('Z')).timestamp()))
@@ -134,7 +136,11 @@ for item in js:
             a_file = filedate.File(full_file_destination)
             a_file.set(created = js[item]['date'], modified = js[item]['date'], accessed = js[item]['date'])
 
+# Keep the index file 
+shutil.copyfile('index.json', destination_folder + 'index.json')
+
 # Get rid of the index and album files
-# os.popen('cp index.json ' + destination_folder + 'index.json') 
 os.remove('index.json')
 os.remove('album.json')
+
+print("All done!")
